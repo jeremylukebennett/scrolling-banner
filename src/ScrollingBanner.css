@@ -1,0 +1,40 @@
+.scrolling-banner {
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem 0;
+  position: relative;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.scrolling-banner-content {
+  display: flex;
+  white-space: nowrap;
+  animation: scroll linear infinite;
+  will-change: transform;
+}
+
+.scrolling-banner-text {
+  display: inline-block;
+  padding: 0 4rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 768px) {
+  .scrolling-banner-text {
+    font-size: 1.2rem;
+    padding: 0 2rem;
+  }
+}

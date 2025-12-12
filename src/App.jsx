@@ -1,33 +1,25 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import ScrollingBanner from './ScrollingBanner'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <ScrollingBanner
+        text="🎉 Welcome to our website! Check out our latest offers and amazing deals! 🎉"
+        speed={20}
+      />
+
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <h1>Scrolling Banner Demo</h1>
+        <p>The banner above scrolls continuously with smooth animation!</p>
+
+        <div style={{ marginTop: '3rem' }}>
+          <ScrollingBanner
+            text="⭐ Custom speed and text can be configured! ⭐"
+            speed={15}
+          />
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   )
 }
