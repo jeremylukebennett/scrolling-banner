@@ -1,13 +1,569 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scrolling-banner</title>
+    <title>Scrolling Banner</title>
+    <style>
+      body {
+        margin-top: 100px !important;
+      }
+
+      .musio-banner-nav {
+        display: block;
+      }
+
+      /* Banner container */
+      .musio-sale-bar {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+        --musio-cta-transition: 0.1s linear;
+        cursor: default;
+
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        font-size: 14px;
+        line-height: 1.4;
+        letter-spacing: 0.2px;
+        color: #000000;
+        font-weight: 200;
+
+        padding: 0 16px;
+        min-height: 44px;
+        box-sizing: border-box;
+      }
+
+      /* Individual slides */
+      .musio-sale-slide {
+        position: absolute;
+        inset: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 0;
+
+        text-align: center;
+        transform: translateX(0);
+        transition: transform 0.45s ease;
+        white-space: normal;
+        z-index: 0;
+      }
+
+      .musio-sale-slide.is-active {
+        transform: translateX(0);
+        z-index: 2;
+      }
+
+      .musio-sale-slide.is-next {
+        transform: translateX(100%);
+        z-index: 1;
+      }
+
+      .musio-sale-slide.is-active.slide-out {
+        transform: translateX(-100%);
+      }
+
+      .musio-sale-slide.is-next.slide-in {
+        transform: translateX(0);
+      }
+
+      .musio-sale-slide.no-transition {
+        transition: none !important;
+      }
+
+      /* Reduced motion support */
+      .musio-sale-bar.reduce-motion .musio-sale-slide {
+        transition: none !important;
+        transform: translateX(0) !important;
+        position: relative;
+      }
+
+      .musio-sale-bar a {
+        color: #000000;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        cursor: pointer;
+      }
+
+      .musio-sale-bar .musio-cta-wrap {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        vertical-align: middle;
+        height: 28px;
+        text-align: center;
+      }
+
+      /* CTA */
+      .musio-sale-bar a.musio-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 12px;
+        margin-left: 8px;
+        border-radius: 900px;
+        background: #ffffff;
+        color: #000000;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        text-decoration: none;
+        border: 2px solid #ffffff;
+        font-weight: 400;
+        font-size: 14px; /* matches banner text */
+        line-height: 1;
+        height: 33px;
+        width: 150px;
+        text-align: center;
+        transition: background var(--musio-cta-transition),
+          border-color var(--musio-cta-transition),
+          color var(--musio-cta-transition),
+          box-shadow var(--musio-cta-transition);
+      }
+
+      .musio-sale-bar a.musio-cta:hover {
+        padding: 4px 12px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        background: #fb2545;
+        border-color: #ffffff;
+        color: #ffffff;
+        font-size: 14px;
+      }
+
+      .musio-sale-bar a:focus-visible {
+        outline: 2px solid rgba(0, 0, 0, 0.4);
+        outline-offset: 2px;
+      }
+
+      .musio-sale-bar strong,
+      .musio-sale-bar b {
+        font-weight: 200;
+      }
+
+      /* Controls */
+      .musio-sale-controls {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 4;
+      }
+
+      /* Pause indicator */
+      .musio-pause-indicator {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 26px;
+        height: 26px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity var(--musio-cta-transition);
+        pointer-events: none;
+        z-index: 5;
+      }
+
+      .musio-pause-indicator::before,
+      .musio-pause-indicator::after {
+        content: "";
+        display: block;
+        width: 3px;
+        height: 12px;
+        background: rgba(255, 255, 255, 0.85);
+      }
+
+      .musio-pause-indicator::after {
+        margin-left: 4px;
+      }
+
+      .musio-sale-bar.is-paused .musio-pause-indicator {
+        opacity: 0.75;
+      }
+
+      .musio-sale-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: transform 0.2s ease, background 0.2s ease;
+      }
+
+      .musio-sale-dot.is-active {
+        background: rgba(255, 255, 255, 0.95);
+        transform: scale(1.1);
+      }
+
+      /* Mobile font reduction */
+      @media (max-width: 600px) {
+        .musio-sale-bar {
+          padding: 0 12px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .musio-sale-bar {
+          font-size: 12px;
+          line-height: 1.35;
+        }
+        .musio-sale-bar a {
+          display: inline-block;
+          max-width: 100%;
+          word-break: break-word;
+        }
+        .musio-sale-controls {
+          display: none;
+        }
+        .musio-sale-bar .musio-cta-wrap {
+          height: auto;
+        }
+        .musio-sale-bar a.musio-cta {
+          display: inline;
+          padding: 0;
+          margin: 0;
+          border: none;
+          background: none;
+          box-shadow: none;
+          color: inherit;
+          width: auto;
+          height: auto;
+          line-height: inherit;
+          font-size: inherit;
+          font-weight: inherit;
+          border-radius: 0;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+      }
+
+      @media (max-width: 380px) {
+        .musio-sale-bar {
+          font-size: 11px;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <nav class="musio-banner-nav w-nav"></nav>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const hostNav = document.querySelector(".nav-container");
+        const fallbackNav = document.querySelector(".musio-banner-nav");
+        const mountTarget = hostNav || fallbackNav;
+        if (!mountTarget) return;
+
+        if (document.querySelector(".musio-sale-bar")) return;
+
+        /* -----------------------------------------
+           1) CONFIG: TIMING + MESSAGES
+           ----------------------------------------- */
+
+        const REMOTE_URL = ""; // optional: set to JSON endpoint returning { messages: [...] }
+        const DISPLAY_MS = 6500;
+
+        const fallbackMessages = [
+          {
+            html: `<span>
+  Free <strong>3-Day Trials</strong> are now available in <strong>Musio</strong>! 
+  <a class="musio-cta" href="https://portal.musio.com/account/download-musio">Download now</a> 
+  and try some new stuff out!
+</span>`,
+            mobileHtml: `<span>Free <strong>3-Day Trials</strong> in <strong>Musio</strong>! <a class="musio-cta" href="https://portal.musio.com/account/download-musio">Download</a></span>`,
+            background: "#fb2545",
+            ctaHref: "https://portal.musio.com/account/download-musio",
+          },
+          {
+            html: `<span>New to Musio? Start with <a href="https://musio.com/musio-essentials" style="font-family: 'Metcon Scaled Regular', Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 400;">Essentials</a>, our free plan.</span>`,
+            mobileHtml: `<span>New to Musio? Try <a href="https://musio.com/musio-essentials" style="font-family: 'Metcon Scaled Regular', Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 400;">Musio Essentials</a> — our free plan.</span>`,
+            background: "#ffd54a",
+            ctaHref: "https://musio.com/musio-essentials",
+          },
+          {
+            html: '<span>New Release: <a href="https://portal.musio.com/marketplace/collection/nashville-scoring-strings">Nashville Scoring Strings</a> by AudioOllie. Available in the Marketplace now!</span>',
+            mobileHtml:
+              '<span><a href="https://portal.musio.com/marketplace/collection/nashville-scoring-strings">Nashville Scoring Strings</a> — now in Marketplace.</span>',
+            background: "#1e94fc",
+            ctaHref:
+              "https://portal.musio.com/marketplace/collection/nashville-scoring-strings",
+          },
+        ];
+
+        /* -----------------------------------------
+           2) HELPERS
+           ----------------------------------------- */
+
+        const prefersReducedMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+        const prefersNarrow = window.matchMedia("(max-width: 480px)").matches;
+        let rotationTimer = null;
+        let paused = false;
+        let messages = [...fallbackMessages];
+        let currentIndex = 0;
+
+        function luminance(hex) {
+          const c = hex.replace("#", "");
+          const r = parseInt(c.substring(0, 2), 16) / 255;
+          const g = parseInt(c.substring(2, 4), 16) / 255;
+          const b = parseInt(c.substring(4, 6), 16) / 255;
+          const f = (v) =>
+            v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+          return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+        }
+
+        function contrastColor(hex) {
+          if (!/^#?[0-9A-Fa-f]{6}$/.test(hex)) return "#000000";
+          const color = hex.startsWith("#") ? hex : `#${hex}`;
+          return luminance(color) > 0.6 ? "#000000" : "#ffffff";
+        }
+
+        function applyMessageToSlide(slideEl, messageConfig) {
+          const html =
+            prefersNarrow && messageConfig.mobileHtml
+              ? messageConfig.mobileHtml
+              : messageConfig.html;
+          slideEl.innerHTML = html;
+          const bg = messageConfig.background || "#000000";
+          const textColor = messageConfig.textColor || contrastColor(bg);
+          slideEl.style.background = bg;
+          slideEl.style.color = textColor;
+
+          const cta = slideEl.querySelector(".musio-cta");
+          if (cta) {
+            let wrap = cta.closest(".musio-cta-wrap");
+            if (!wrap || wrap.firstChild !== cta) {
+              wrap = document.createElement("span");
+              wrap.className = "musio-cta-wrap";
+              cta.replaceWith(wrap);
+              wrap.appendChild(cta);
+            }
+            requestAnimationFrame(() => {
+              if (prefersNarrow) {
+                wrap.style.width = "auto";
+                wrap.style.height = "auto";
+              } else {
+                const rect = cta.getBoundingClientRect();
+                if (rect.width) {
+                  wrap.style.width = `${Math.ceil(rect.width)}px`;
+                }
+              }
+            });
+          }
+        }
+
+        function clearTimers() {
+          if (rotationTimer) {
+            clearTimeout(rotationTimer);
+            rotationTimer = null;
+          }
+        }
+
+        function pause() {
+          paused = true;
+          clearTimers();
+          bar.classList.add("is-paused");
+        }
+
+        function resume() {
+          if (prefersReducedMotion || paused === false) return;
+          paused = false;
+          bar.classList.remove("is-paused");
+          scheduleNextRotation();
+        }
+
+        function handleVisibilityChange() {
+          if (document.hidden) {
+            pause();
+          } else {
+            resume();
+          }
+        }
+
+        /* -----------------------------------------
+           3) DOM SETUP
+           ----------------------------------------- */
+
+        const bar = document.createElement("div");
+        bar.className = "musio-sale-bar";
+        if (prefersReducedMotion) {
+          bar.classList.add("reduce-motion");
+        }
+
+        let slideCurrent = document.createElement("div");
+        slideCurrent.className = "musio-sale-slide is-active";
+
+        let slideNext = document.createElement("div");
+        slideNext.className = "musio-sale-slide is-next";
+
+        const controls = document.createElement("div");
+        controls.className = "musio-sale-controls";
+
+        const pauseIndicator = document.createElement("div");
+        pauseIndicator.className = "musio-pause-indicator";
+
+        bar.appendChild(slideCurrent);
+        bar.appendChild(slideNext);
+        bar.appendChild(controls);
+        bar.appendChild(pauseIndicator);
+        if (hostNav && hostNav.parentNode) {
+          hostNav.parentNode.insertBefore(bar, hostNav);
+        } else {
+          fallbackNav.prepend(bar);
+        }
+
+        /* -----------------------------------------
+           4) CORE LOGIC
+           ----------------------------------------- */
+
+        function renderDots() {
+          controls.innerHTML = "";
+          messages.forEach((_, idx) => {
+            const dot = document.createElement("div");
+            dot.className =
+              "musio-sale-dot" + (idx === currentIndex ? " is-active" : "");
+            dot.addEventListener("click", () => jumpTo(idx));
+            controls.appendChild(dot);
+          });
+        }
+
+        function jumpTo(index) {
+          clearTimers();
+          currentIndex = index % messages.length;
+          applyMessageToSlide(slideCurrent, messages[currentIndex]);
+          updateDots();
+          if (!prefersReducedMotion && messages.length > 1) {
+            scheduleNextRotation();
+          }
+        }
+
+        function updateDots() {
+          controls.querySelectorAll(".musio-sale-dot").forEach((dot, i) => {
+            dot.classList.toggle("is-active", i === currentIndex);
+          });
+        }
+
+        function rotateTo(nextIndex) {
+          if (messages.length < 2) return;
+          applyMessageToSlide(slideNext, messages[nextIndex]);
+          slideNext.className = "musio-sale-slide is-next";
+
+          requestAnimationFrame(() => {
+            slideCurrent.classList.add("slide-out");
+            slideNext.classList.add("slide-in");
+          });
+
+          slideCurrent.addEventListener(
+            "transitionend",
+            (event) => {
+              if (event.target !== slideCurrent) return;
+
+              slideCurrent.className = "musio-sale-slide";
+              slideNext.className = "musio-sale-slide is-active";
+
+              const temp = slideCurrent;
+              slideCurrent = slideNext;
+              slideNext = temp;
+
+              slideNext.className = "musio-sale-slide no-transition is-next";
+              void slideNext.offsetWidth;
+              slideNext.classList.remove("no-transition");
+
+              currentIndex = nextIndex;
+              updateDots();
+              scheduleNextRotation();
+            },
+            { once: true }
+          );
+        }
+
+        function scheduleNextRotation() {
+          if (prefersReducedMotion || paused || messages.length < 2) return;
+          clearTimers();
+          rotationTimer = setTimeout(() => {
+            const nextIndex = (currentIndex + 1) % messages.length;
+            rotateTo(nextIndex);
+          }, DISPLAY_MS);
+        }
+
+        function bindAccessibilityPause() {
+          ["mouseenter", "focusin"].forEach((evt) => {
+            bar.addEventListener(evt, pause);
+          });
+          ["mouseleave", "focusout"].forEach((evt) => {
+            bar.addEventListener(evt, () => resume());
+          });
+        }
+
+        function bindClickThrough() {
+          bar.addEventListener("click", (event) => {
+            if (controls.contains(event.target)) return;
+            const anchorTarget = event.target.closest("a");
+            if (anchorTarget) return; // honor native links inside slides
+            const href = messages[currentIndex]?.ctaHref;
+            if (href) {
+              window.location.href = href;
+            }
+          });
+        }
+
+        function maybeDisableForReducedMotion() {
+          if (!prefersReducedMotion) return;
+          clearTimers();
+          controls.style.display = "none";
+        }
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        /* -----------------------------------------
+           5) DATA FETCH + INIT
+           ----------------------------------------- */
+
+        async function init() {
+          // hydrate messages from remote if provided
+          if (REMOTE_URL) {
+            try {
+              const res = await fetch(REMOTE_URL, { cache: "no-store" });
+              if (res.ok) {
+                const json = await res.json();
+                if (json?.messages?.length) {
+                  messages = json.messages;
+                }
+              }
+            } catch (err) {
+              console.warn(
+                "Musio sale bar: remote fetch failed, using fallback",
+                err
+              );
+            }
+          }
+
+          if (!messages.length) return;
+
+          applyMessageToSlide(slideCurrent, messages[currentIndex]);
+          renderDots();
+
+          bindAccessibilityPause();
+          bindClickThrough();
+          maybeDisableForReducedMotion();
+
+          if (!prefersReducedMotion && messages.length > 1) {
+            scheduleNextRotation();
+          }
+        }
+
+        init();
+      });
+    </script>
   </body>
 </html>
